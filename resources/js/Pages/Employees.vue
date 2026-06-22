@@ -37,9 +37,7 @@ import { Head } from '@inertiajs/vue3';
                 </svg>
                 <p class="mt-4 text-sm font-medium text-gray-900">No employees yet</p>
                 <p class="mt-1 text-sm">Get started by adding your first employee.</p>
-                <button class="mt-6 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500">
-                    + Add Employee
-                </button>
+               
             </div>
         </div>
     </AuthenticatedLayout>

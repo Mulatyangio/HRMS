@@ -18,7 +18,7 @@ class EmployeeController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:employees,email',
             'department' => 'required|string|max:255',
-            // Add other fields as necessary
+            'phone' => 'required|int|max:20',
         ]);
 
         // Create a new employee record
