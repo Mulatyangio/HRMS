@@ -13,8 +13,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('department');
+            $table->string('phone');
             $table->string('position');
-            $table->date('date_of_birth')->nullable();
             $table->string('status')->default('active');
             $table->decimal('salary', 10, 2)->nullable();
             $table->date('hired_at')->nullable();

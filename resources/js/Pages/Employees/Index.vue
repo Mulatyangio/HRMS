@@ -10,16 +10,7 @@ const { employees } = defineProps({
     },
 });
 
-import { ref, computed } from 'vue'
 
-const props = defineProps({
-  employees: {
-    type: Array,
-    default: () => []
-  }
-})
-
-const search = ref('')
 </script>
 
 <template>
@@ -45,7 +36,7 @@ const search = ref('')
                 </button>
             </div>
         </template>
-
+                                                            
         <div class="rounded-xl border border-gray-200 bg-white shadow-sm mt-4">
             <div class="border-b border-gray-100 px-6 py-4">
                 <div class="flex items-center gap-4">
