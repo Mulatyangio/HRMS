@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\DepartmentController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -18,6 +19,11 @@ Route::get('/', function () {
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])->name('dashboard');
+
+
+
+Route::get('/departments', [DepartmentController::class, 'index'])
+    ->middleware(['auth','verified'])->name('departments');
 
 /* FIXED ONLY THIS ROUTE */
 Route::get('/employees', [EmployeeController::class, 'index'])

@@ -1,8 +1,8 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
 
-// SAFE props (always array, never undefined crash)
 const { employees } = defineProps({
     employees: {
         type: Array,
@@ -10,7 +10,18 @@ const { employees } = defineProps({
     },
 });
 
+const search = ref('');
 
+const filteredEmployees = computed(() => {
+    if (!search.value.trim()) return employees;
+    const term = search.value.toLowerCase();
+    return employees.filter(e =>
+        e.name.toLowerCase().includes(term) ||
+        e.email.toLowerCase().includes(term) ||
+        e.department.toLowerCase().includes(term) ||
+        e.position.toLowerCase().includes(term)
+    );
+});
 </script>
 
 <template>
@@ -42,6 +53,7 @@ const { employees } = defineProps({
                 <div class="flex items-center gap-4">
                     <input
                         type="text"
+                        v-model="search"
                         placeholder="Search employees..."
                         class="max-w-xs rounded-lg border-gray-200 bg-gray-50 py-2 px-3 text-sm"
                     />
@@ -58,7 +70,7 @@ const { employees } = defineProps({
             </div>
 
             <!-- TABLE -->
-            <div v-if="employees.length > 0" class="overflow-x-auto">
+            <div v-if="filteredEmployees.length > 0" class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -85,7 +97,7 @@ const { employees } = defineProps({
 
                     <tbody class="divide-y divide-gray-200 bg-white">
                         <tr
-                            v-for="employee in employees"
+                            v-for="employee in filteredEmployees"
                             :key="employee.id"
                             class="hover:bg-gray-50"
                         >
@@ -124,6 +136,16 @@ const { employees } = defineProps({
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- NOT FOUND -->
+            <div v-else-if="search.trim() && filteredEmployees.length === 0" class="p-6 text-center text-gray-500">
+                <p class="text-sm font-medium text-gray-900">
+                    Not found
+                </p>
+                <p class="mt-1 text-sm">
+                    No employees match your search.
+                </p>
             </div>
 
             <!-- EMPTY STATE -->

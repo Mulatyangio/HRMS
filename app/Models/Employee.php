@@ -12,9 +12,9 @@ class Employee extends Model
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'department',
         'position',
-        'date_of_birth',
         'status',
         'salary',
         'hired_at',
@@ -24,7 +24,6 @@ class Employee extends Model
     protected function casts(): array
     {
         return [
-            'date_of_birth' => 'date',
             'hired_at' => 'date',
             'salary' => 'decimal:2',
             'is_department_head' => 'boolean',

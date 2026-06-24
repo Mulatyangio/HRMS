@@ -40,14 +40,6 @@ const props = defineProps({
             { user: 'David Kim', action: 'submitted expense report', time: '4 hours ago' },
         ],
     },
-    upcomingBirthdays: {
-        type: Array,
-        default: () => [
-            { name: 'Alex Turner', date: 'Jun 16', department: 'Engineering' },
-            { name: 'Maria Garcia', date: 'Jun 18', department: 'Marketing' },
-            { name: 'John Smith', date: 'Jun 22', department: 'Finance' },
-        ],
-    },
 });
 </script>
 
@@ -148,8 +140,7 @@ const props = defineProps({
             </div>
         </div>
 
-        <!-- Quick Actions & Birthdays -->
-        <div class="mt-6 grid gap-6 lg:grid-cols-3">
+        <div class="mt-6 grid gap-6 lg:grid-cols-2">
             <!-- Quick Actions -->
             <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h3 class="mb-4 text-base font-semibold text-gray-900">Quick Actions</h3>
@@ -178,22 +169,6 @@ const props = defineProps({
                         </svg>
                         Generate Report
                     </button>
-                </div>
-            </div>
-
-            <!-- Upcoming Birthdays -->
-            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                <h3 class="mb-4 text-base font-semibold text-gray-900">Upcoming Birthdays</h3>
-                <div v-for="(b, i) in upcomingBirthdays" :key="b.name" :class="i !== upcomingBirthdays.length - 1 ? 'mb-4 border-b border-gray-100 pb-4' : ''">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-pink-100 text-sm font-medium text-pink-600">
-                            {{ b.name.charAt(0) }}{{ b.name.split(' ')[1].charAt(0) }}
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">{{ b.name }}</p>
-                            <p class="text-xs text-gray-500">{{ b.date }} &middot; {{ b.department }}</p>
-                        </div>
-                    </div>
                 </div>
             </div>
 

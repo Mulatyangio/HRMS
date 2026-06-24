@@ -47,41 +47,11 @@ class DashboardController extends Controller
                 'time' => $employee->updated_at->diffForHumans(),
             ]);
 
-        $upcomingBirthdays = Employee::whereRaw(
-            "strftime('%m-%d', date_of_birth) >= strftime('%m-%d', 'now')"
-        )
-            ->orderByRaw("strftime('%m-%d', date_of_birth)")
-            ->take(3)
-            ->get()
-            ->map(fn ($employee) => [
-                'name' => $employee->name,
-                'date' => $employee->date_of_birth->format('M d'),
-                'department' => $employee->department,
-            ]);
-
-        if ($upcomingBirthdays->count() < 3) {
-            $excludeIds = $upcomingBirthdays->pluck('name');
-
-            $fallback = Employee::whereNotIn('name', $excludeIds)
-                ->orderByRaw("strftime('%m-%d', date_of_birth)")
-                ->take(3 - $upcomingBirthdays->count())
-                ->get()
-                ->map(fn ($employee) => [
-                    'name' => $employee->name,
-                    'date' => $employee->date_of_birth->format('M d'),
-                    'department' => $employee->department,
-                ]);
-
-            $upcomingBirthdays = $upcomingBirthdays->concat($fallback);
-        }
-
-
         
         return Inertia::render('Dashboard', [
             'stats' => $stats,
             'departments' => $departments,
             'recentActivities' => $recentActivities,
-            'upcomingBirthdays' => $upcomingBirthdays,
         ]);
     }
 }

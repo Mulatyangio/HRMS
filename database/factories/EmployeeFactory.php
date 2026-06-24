@@ -26,9 +26,9 @@ class EmployeeFactory extends Factory
         return [
             'name' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
+            'phone' => $this->faker->phoneNumber(),
             'department' => $department,
             'position' => $position,
-            'date_of_birth' => $this->faker->dateTimeBetween('-60 years', '-20 years')->format('Y-m-d'),
             'status' => $this->faker->randomElement(['active', 'active', 'active', 'active', 'on_leave']),
             'salary' => $this->faker->randomFloat(2, 40000, 180000),
             'hired_at' => $this->faker->dateTimeBetween('-5 years', 'now')->format('Y-m-d'),
