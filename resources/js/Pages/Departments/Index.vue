@@ -1,8 +1,10 @@
 ```vue
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+
+const flash = computed(() => usePage().props.flash?.success);
 
 const props = defineProps({
     departments: {
@@ -48,6 +50,14 @@ const filteredDepartments = computed(() => {
                     >
                         Add Department
                     </Link>
+                </div>
+
+                <!-- Flash Message -->
+                <div
+                    v-if="flash"
+                    class="mb-4 rounded-lg bg-green-100 px-4 py-3 text-sm font-medium text-green-700"
+                >
+                    {{ flash }}
                 </div>
 
                 <!-- Search -->

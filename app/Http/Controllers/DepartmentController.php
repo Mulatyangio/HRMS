@@ -16,27 +16,20 @@ class DepartmentController extends Controller
 
     public function store(Request $request)
     {
-        // Validate the request data
         $validatedData = $request->validate([
-            
-
-                'id' => 'required|integer|unique:departments,id',
-                'name' => 'required|string|max:255',
-                'code' => 'required|string|max:255|unique:departments,code',
-                'description' => 'nullable|string',
-                'head_id' => 'nullable|integer|exists:employees,id',
-                'status' => 'required|boolean',
-                'created_at' => 'required|datetime',
-                'updated_at' => 'required|datetime'
-                            
-
+            'name' => 'required|string|max:255',
+            'head' => 'nullable|string|max:255',
         ]);
 
-        
-        // Create a new employee record
-        \App\Models\Departments::create($validatedData);
+        $words = explode(' ', $validatedData['name']);
+        $code = count($words) > 1
+            ? collect($words)->map(fn($w) => strtoupper($w[0]))->implode('')
+            : strtoupper(substr($validatedData['name'], 0, 3));
 
-        // Redirect back to the employees list with a success message
+        $validatedData['code'] = $code;
+
+        Departments::create($validatedData);
+
         return redirect()->route('departments')->with('success', 'Department created successfully.');
     }
       public function index(): Response

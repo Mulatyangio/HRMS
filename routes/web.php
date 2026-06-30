@@ -25,7 +25,17 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::get('/departments', [DepartmentController::class, 'index'])
     ->middleware(['auth','verified'])->name('departments');
 
-/* FIXED ONLY THIS ROUTE */
+Route::get('/departments/create', [DepartmentController::class, 'create'])
+    ->middleware(['auth', 'verified'])->name('departments.create');
+
+Route::get('/departments/{department}/edit', [DepartmentController::class, 'edit'])
+    ->name('departments.edit');
+
+Route::get('/departments/index', [DepartmentController::class, 'index'])
+    ->name('departments.index');
+
+Route::post('/departments', [DepartmentController::class, 'store'])
+    ->middleware(['auth', 'verified'])->name('departments.store');
 Route::get('/employees', [EmployeeController::class, 'index'])
     ->middleware(['auth','verified'])->name('employees');
 
