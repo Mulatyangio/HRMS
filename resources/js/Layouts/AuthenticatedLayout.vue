@@ -116,10 +116,10 @@ const sidebarOpen = ref(false);
                     >
                         Time & Attendance
                     </p>
-                </div>
+                </div>  
 
                 <Link
-                    :href="route('dashboard')"
+                    :href="route('attendance')"
                     :class="
                         route().current('attendance*')
                             ? 'flex items-center gap-3 rounded-lg bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700'

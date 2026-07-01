@@ -26,6 +26,7 @@ class EmployeeController extends Controller
             'status' => 'required|string|in:active,inactive,on_leave',
             'salary' => 'nullable|numeric|min:0',
             'hired_at' => 'nullable|date',
+            'department_id' => 'nullable|exists:departments,id',
             'is_department_head' => 'nullable|boolean',
         ]);
 
