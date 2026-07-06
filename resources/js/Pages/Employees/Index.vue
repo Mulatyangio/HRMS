@@ -1,26 +1,37 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 
-const { employees } = defineProps({
+const { employees, departments } = defineProps({
     employees: {
+        type: Array,
+        default: () => [],
+    },
+    departments: {
         type: Array,
         default: () => [],
     },
 });
 
 const search = ref('');
+const selectedDepartment = ref('');
 
 const filteredEmployees = computed(() => {
-    if (!search.value.trim()) return employees;
+    let result = employees;
     const term = search.value.toLowerCase();
-    return employees.filter(e =>
-        e.name.toLowerCase().includes(term) ||
-        e.email.toLowerCase().includes(term) ||
-        e.department.toLowerCase().includes(term) ||
-        e.position.toLowerCase().includes(term)
-    );
+    if (term) {
+        result = result.filter(e =>
+            e.name.toLowerCase().includes(term) ||
+            e.email.toLowerCase().includes(term) ||
+            e.department.toLowerCase().includes(term) ||
+            e.position.toLowerCase().includes(term)
+        );
+    }
+    if (selectedDepartment.value) {
+        result = result.filter(e => e.department === selectedDepartment.value);
+    }
+    return result;
 });
 </script>
 
@@ -59,12 +70,17 @@ const filteredEmployees = computed(() => {
                     />
 
                     <select
+                        v-model="selectedDepartment"
                         class="rounded-lg border-gray-200 bg-gray-50 py-2 text-sm"
                     >
-                        <option>All Departments</option>
-                        <option>Engineering</option>
-                        <option>Marketing</option>
-                        <option>Finance</option>
+                        <option value="">All Departments</option>
+                        <option
+                            v-for="dept in departments"
+                            :key="dept.id"
+                            :value="dept.name"
+                        >
+                            {{ dept.name }}
+                        </option>
                     </select>
                 </div>
             </div>
@@ -91,6 +107,9 @@ const filteredEmployees = computed(() => {
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Status
+                            </th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                                Actions
                             </th>
                         </tr>
                     </thead>
@@ -132,6 +151,22 @@ const filteredEmployees = computed(() => {
                                 >
                                     {{ employee.status }}
                                 </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <Link
+                                    :href="route('employees.edit', employee.id)"
+                                    class="mr-2 text-indigo-600 hover:underline"
+                                >
+                                    Edit
+                                </Link>
+                                <Link
+                                    :href="route('employees.destroy', employee.id)"
+                                    method="delete"
+                                    as="button"
+                                    class="text-red-600 hover:underline"
+                                >
+                                    Delete
+                                </Link>
                             </td>
                         </tr>
                     </tbody>

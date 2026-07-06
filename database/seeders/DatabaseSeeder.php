@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Departments;
 use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -13,6 +14,11 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        $departments = ['Engineering', 'Marketing', 'Finance', 'Operations', 'Human Resources', 'Sales'];
+        foreach ($departments as $name) {
+            Departments::firstOrCreate(['name' => $name]);
+        }
+
         if (! User::where('email', 'test@example.com')->exists()) {
             User::factory()->create([
                 'name' => 'Test User',
@@ -28,7 +34,7 @@ class DatabaseSeeder extends Seeder
             'department' => 'Engineering',
             'position' => 'Engineering Director',
             'is_department_head' => true,
-        ]);https://open.spotify.com/playlist/5JdI8OoQ3t5CwfMTDKUQAh
+        ]);
 
         Employee::factory()->create([
             'name' => 'Mike Chen',

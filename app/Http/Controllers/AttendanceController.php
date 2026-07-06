@@ -75,7 +75,17 @@ class AttendanceController extends Controller
      */
     public function update(Request $request, Attendance $attendance)
     {
-        //
+        $validatedData = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'date' => 'required|date',
+            'check_in' => 'nullable',
+            'check_out' => 'nullable',
+            'status' => 'required|in:Present,Absent,Late',
+        ]);
+
+        $attendance->update($validatedData);
+
+        return redirect()->route('attendance')->with('success', 'Attendance updated successfully.');
     }
 
     /**
@@ -83,7 +93,8 @@ class AttendanceController extends Controller
      */
     public function destroy(Attendance $attendance)
     {
-        //
+        $attendance->delete();
+        return redirect()->route('attendance')->with('success', 'Attendance deleted successfully.');
     }
 }
 

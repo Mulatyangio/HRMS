@@ -143,7 +143,7 @@ const sidebarOpen = ref(false);
                 </Link>
 
                 <Link
-                    :href="route('dashboard')"
+                    :href="route('leaves')"
                     :class="
                         route().current('leaves*')
                             ? 'flex items-center gap-3 rounded-lg bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700'
@@ -175,7 +175,7 @@ const sidebarOpen = ref(false);
                 </div>
 
                 <Link
-                    :href="route('dashboard')"
+                    :href="route('payroll')"
                     :class="
                         route().current('payroll*')
                             ? 'flex items-center gap-3 rounded-lg bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700'

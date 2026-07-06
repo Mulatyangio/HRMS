@@ -95,6 +95,9 @@ const filteredDepartments = computed(() => {
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                                         Created
                                     </th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
 
@@ -112,7 +115,7 @@ const filteredDepartments = computed(() => {
                                     </td>
 
                                     <td class="whitespace-nowrap px-6 py-4">
-                                        {{ department.head || 'N/A' }}
+                                        {{ department.head_name || 'N/A' }}
                                     </td>
 
                                     <td class="whitespace-nowrap px-6 py-4">
@@ -126,11 +129,27 @@ const filteredDepartments = computed(() => {
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                                         {{ new Date(department.created_at).toLocaleDateString() }}
                                     </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-center">
+                                        <Link
+                                            :href="route('departments.edit', department.id)"
+                                            class="mr-2 text-indigo-600 hover:underline"
+                                        >
+                                            Edit
+                                        </Link>
+                                        <Link
+                                            :href="route('departments.destroy', department.id)"
+                                            method="delete"
+                                            as="button"
+                                            class="text-red-600 hover:underline"
+                                        >
+                                            Delete
+                                        </Link>
+                                    </td>
                                 </tr>
 
                                 <tr v-if="filteredDepartments.length === 0">
                                     <td
-                                        colspan="5"
+                                        colspan="7"
                                         class="px-6 py-8 text-center text-gray-500"
                                     >
                                         No departments found.
