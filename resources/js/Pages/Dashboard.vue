@@ -23,7 +23,7 @@ const props = defineProps({
         default: () => [
             { name: 'Engineering', head: 'Sarah Johnson', employees: 45 },
             { name: 'Marketing', head: 'Mike Chen', employees: 28 },
-            { name: 'Finance', head: 'Emily Davis', employees: 15 },
+            { name: 'Finance', head: 'Emily Davis', emtimezoneployees: 15 },
             { name: 'Operations', head: 'James Wilson', employees: 32 },
             { name: 'Human Resources', head: 'Lisa Brown', employees: 12 },
             { name: 'Sales', head: 'David Kim', employees: 38 },
@@ -100,7 +100,9 @@ const props = defineProps({
             <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
                 <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                     <h3 class="text-base font-semibold text-gray-900">Departments</h3>
-                    <button class="text-sm font-medium text-indigo-600 hover:text-indigo-500">View all</button>
+                    <button class="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                    @onclick="router.visit(route('departments.index'))"
+                    >View all</button>
                 </div>
                 <div class="p-6">
                     <div v-for="(dept, i) in departments" :key="dept.name" :class="i !== departments.length - 1 ? 'mb-4' : ''">
@@ -121,7 +123,9 @@ const props = defineProps({
             <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
                 <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                     <h3 class="text-base font-semibold text-gray-900">Recent Activity</h3>
-                    <button class="text-sm font-medium text-indigo-600 hover:text-indigo-500">View all</button>
+                    <button class="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                    @onclick="router.visit(route('activities.index'))"
+                    >View all</button>
                 </div>
                 <div class="divide-y divide-gray-100">
                     <div v-for="activity in recentActivities" :key="activity.time" class="flex items-center gap-3 px-6 py-3">

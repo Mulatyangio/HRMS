@@ -126,21 +126,8 @@ Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])
 //Report routes
 Route::get('/reports', [ReportController::class, 'index'])
     ->middleware(['auth','verified'])->name('reports');
-
-Route::get('/reports/create', [ReportController::class, 'create'])
-    ->middleware(['auth','verified'])->name('reports.create');
-    
-Route::post('/reports', [ReportController::class, 'store'])
-    ->middleware(['auth','verified'])->name('reports.store');   
-
-Route::get('/reports/{report}/edit', [ReportController::class, 'edit'])
-    ->name('reports.edit');
-
-Route::put('/reports/{report}', [ReportController::class, 'update'])
-    ->name('reports.update');
-
-Route::delete('/reports/{report}', [ReportController::class, 'destroy'])
-    ->name('reports.destroy');
+Route::get('/reports/export/{type}', [ReportController::class, 'export'])
+    ->middleware(['auth','verified'])->name('reports.export');
 
 
 Route::middleware('auth')->group(function () {

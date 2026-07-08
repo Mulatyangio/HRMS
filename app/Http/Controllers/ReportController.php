@@ -2,77 +2,139 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreReportRequest;
-use App\Http\Requests\UpdateReportRequest;
-use App\Models\Report;
+use App\Models\Attendance;
+use App\Models\Departments;
+use App\Models\Employee;
+use App\Models\LeaveMgt;
+use App\Models\Payroll;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
+        $employees = Employee::all();
+        $totalEmployees = $employees->count();
+        $activeEmployees = $employees->where('status', 'active')->count();
+        $onLeaveEmployees = $employees->where('status', 'on_leave')->count();
+        $inactiveEmployees = $employees->where('status', 'inactive')->count();
+
+        $departments = Departments::all()->map(function ($dept) {
+            $head = Employee::where('department', $dept->name)
+                ->where('is_department_head', true)
+                ->first();
+            return [
+                'name' => $dept->name,
+                'head_count' => Employee::where('department', $dept->name)->count(),
+                'head_name' => $head ? $head->name : 'N/A',
+            ];
+        });
+
+        $today = now()->toDateString();
+        $attendance = [
+            'present' => Attendance::where('date', $today)->where('status', 'Present')->count(),
+            'absent' => Attendance::where('date', $today)->where('status', 'Absent')->count(),
+            'late' => Attendance::where('date', $today)->where('status', 'Late')->count(),
+        ];
+
+        $leaves = [
+            'pending' => LeaveMgt::where('status', 'pending')->count(),
+            'approved' => LeaveMgt::where('status', 'approved')->count(),
+            'rejected' => LeaveMgt::where('status', 'rejected')->count(),
+        ];
+
+        $payrolls = Payroll::all();
+        $totalPayroll = $payrolls->sum('net_salary');
+        $payrollCount = $payrolls->count();
+
         return inertia('Reports/Index', [
-            'reports' => Report::with('employee')->latest()->get(),
+            'employees' => [
+                'total' => $totalEmployees,
+                'active' => $activeEmployees,
+                'on_leave' => $onLeaveEmployees,
+                'inactive' => $inactiveEmployees,
+            ],
+            'departments' => $departments,
+            'attendance' => $attendance,
+            'leaves' => $leaves,
+            'payroll' => [
+                'total' => $totalPayroll,
+                'count' => $payrollCount,
+            ],
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function export(Request $request, string $type): StreamedResponse
     {
-        return inertia('Reports/Create', [
-            'employees' => \App\Models\Employee::all(),
-        ]);
+        $employees = Employee::all();
+        $attendance = [
+            'present' => Attendance::where('date', now()->toDateString())->where('status', 'Present')->count(),
+            'absent' => Attendance::where('date', now()->toDateString())->where('status', 'Absent')->count(),
+            'late' => Attendance::where('date', now()->toDateString())->where('status', 'Late')->count(),
+        ];
+
+        return match ($type) {
+            'csv' => $this->exportCsv($employees, $attendance),
+            'excel' => $this->exportExcel($employees, $attendance),
+            'pdf' => $this->exportPdf($employees, $attendance),
+            default => abort(404),
+        };
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreReportRequest $request)
+    private function exportCsv($employees, $attendance): StreamedResponse
     {
-        Report::create($request->validated());
-        return redirect()->route('reports')->with('success', 'Report created successfully.');
+        $response = new StreamedResponse(function () use ($employees, $attendance) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, ['Report', 'Value']);
+            fputcsv($handle, ['Total Employees', $employees->count()]);
+            fputcsv($handle, ['Active Employees', $employees->where('status', 'active')->count()]);
+            fputcsv($handle, ['Present Today', $attendance['present']]);
+            fputcsv($handle, ['Absent Today', $attendance['absent']]);
+            fputcsv($handle, ['Late Today', $attendance['late']]);
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename="report.csv"');
+
+        return $response;
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Report $report)
+    private function exportExcel($employees, $attendance): StreamedResponse
     {
-        return inertia('Reports/Show', [
-            'report' => $report->load('employee'),
-        ]);
+        $response = new StreamedResponse(function () use ($employees, $attendance) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, ['Report', 'Value']);
+            fputcsv($handle, ['Total Employees', $employees->count()]);
+            fputcsv($handle, ['Active Employees', $employees->where('status', 'active')->count()]);
+            fputcsv($handle, ['Present Today', $attendance['present']]);
+            fputcsv($handle, ['Absent Today', $attendance['absent']]);
+            fputcsv($handle, ['Late Today', $attendance['late']]);
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'application/vnd.ms-excel');
+        $response->headers->set('Content-Disposition', 'attachment; filename="report.xls"');
+
+        return $response;
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Report $report)
+    private function exportPdf($employees, $attendance): StreamedResponse
     {
-        return inertia('Reports/Edit', [
-            'report' => $report->load('employee'),
-            'employees' => \App\Models\Employee::all(),
-        ]);
-    }
+        $html = view('reports.export', compact('employees', 'attendance'))->render();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateReportRequest $request, Report $report)
-    {
-        $report->update($request->validated());
-        return redirect()->route('reports')->with('success', 'Report updated successfully.');
-    }
+        $response = new StreamedResponse(function () use ($html) {
+            echo $html;
+        });
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Report $report)
-    {
-        $report->delete();
-        return redirect()->route('reports')->with('success', 'Report deleted successfully.');
+        $response->headers->set('Content-Type', 'application/pdf');
+        $response->headers->set('Content-Disposition', 'attachment; filename="report.pdf"');
+
+        return $response;
     }
 }

@@ -9,6 +9,9 @@ use App\Models\Departments;
 
 class DepartmentController extends Controller
 {
+
+
+    
     public function create()
     {
         return inertia('Departments/Create');

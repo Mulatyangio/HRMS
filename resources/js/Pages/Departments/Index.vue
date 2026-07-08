@@ -1,4 +1,3 @@
-```vue
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
@@ -164,4 +163,3 @@ const filteredDepartments = computed(() => {
         </div>
     </AuthenticatedLayout>
 </template>
-```
