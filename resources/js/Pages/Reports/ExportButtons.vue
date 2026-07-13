@@ -1,8 +1,18 @@
 <script setup>
-import { router } from '@inertiajs/vue3';
+const props = defineProps({
+    filters: { type: Object, default: () => ({}) },
+});
 
 const exportReport = (type) => {
-    window.open(route('reports.export', { type }), '_blank');
+    const params = { type };
+
+    if (props.filters.from) params.from = props.filters.from;
+    if (props.filters.to) params.to = props.filters.to;
+    if (props.filters.department) params.department = props.filters.department;
+    if (props.filters.status) params.status = props.filters.status;
+
+    const url = route('reports.export', params);
+    window.open(url, '_blank');
 };
 </script>
 

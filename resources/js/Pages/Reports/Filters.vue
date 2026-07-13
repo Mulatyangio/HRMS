@@ -1,26 +1,23 @@
 <script setup>
-import { reactive } from 'vue';
 import { router } from '@inertiajs/vue3';
 
-const filters = reactive({
-    from: '',
-    to: '',
-    department: '',
-    status: '',
+const props = defineProps({
+    filters: { type: Object, required: true },
+    departments: { type: Array, default: () => [] },
 });
 
 function applyFilters() {
-    router.get(route('reports'), filters, {
+    router.get(route('reports'), props.filters, {
         preserveState: true,
         preserveScroll: true,
     });
 }
 
 function resetFilters() {
-    filters.from = '';
-    filters.to = '';
-    filters.department = '';
-    filters.status = '';
+    props.filters.from = '';
+    props.filters.to = '';
+    props.filters.department = '';
+    props.filters.status = '';
 
     applyFilters();
 }
@@ -74,11 +71,7 @@ function resetFilters() {
                     class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
                 >
                     <option value="">All Departments</option>
-                    <option>Human Resource</option>
-                    <option>Finance</option>
-                    <option>ICT</option>
-                    <option>Marketing</option>
-                    <option>Operations</option>
+                    <option v-for="dept in departments" :key="dept.name" :value="dept.name">{{ dept.name }}</option>
                 </select>
             </div>
 

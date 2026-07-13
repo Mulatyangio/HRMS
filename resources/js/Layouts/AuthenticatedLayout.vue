@@ -1,13 +1,118 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink.vue";
-import { Link } from "@inertiajs/vue3";
+import { Link, router } from "@inertiajs/vue3";
 
 const showingNavigationDropdown = ref(false);
 const sidebarOpen = ref(false);
+
+const notifications = ref([]);
+const unreadCount = ref(0);
+const showNotifications = ref(false);
+
+const notificationIcons = {
+    employee_added: { color: 'bg-green-100 text-green-600', icon: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' },
+    employee_removed: { color: 'bg-red-100 text-red-600', icon: 'M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6' },
+    payroll_processed: { color: 'bg-blue-100 text-blue-600', icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z' },
+    leave_approved: { color: 'bg-emerald-100 text-emerald-600', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+    leave_rejected: { color: 'bg-orange-100 text-orange-600', icon: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z' },
+};
+
+const defaultIcon = { color: 'bg-gray-100 text-gray-600', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' };
+
+function getNotificationIcon(type) {
+    return notificationIcons[type] || defaultIcon;
+}
+
+function getNotificationStyle(type) {
+    return getNotificationIcon(type).color;
+}
+
+function getNotificationSvgPath(type) {
+    return getNotificationIcon(type).icon;
+}
+
+async function fetchNotifications() {
+    try {
+        const response = await fetch(route('notifications.index'));
+        const data = await response.json();
+        notifications.value = data.notifications;
+        unreadCount.value = data.unread_count;
+    } catch (e) {
+        console.error('Failed to fetch notifications:', e);
+    }
+}
+
+async function markAsRead(id) {
+    try {
+        const response = await fetch(route('notifications.markRead', id), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        const data = await response.json();
+        unreadCount.value = data.unread_count;
+        const notif = notifications.value.find(n => n.id === id);
+        if (notif) notif.is_read = true;
+    } catch (e) {
+        console.error('Failed to mark notification as read:', e);
+    }
+}
+
+async function markAllAsRead() {
+    try {
+        const response = await fetch(route('notifications.markAllRead'), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        const data = await response.json();
+        unreadCount.value = data.unread_count;
+        notifications.value.forEach(n => n.is_read = true);
+    } catch (e) {
+        console.error('Failed to mark all as read:', e);
+    }
+}
+
+function toggleNotifications() {
+    showNotifications.value = !showNotifications.value;
+    if (showNotifications.value) {
+        fetchNotifications();
+    }
+}
+
+function closeNotifications() {
+    showNotifications.value = false;
+}
+
+function handleClickOutside(e) {
+    if (!e.target.closest('.notification-bell-wrapper')) {
+        showNotifications.value = false;
+    }
+}
+
+function timeAgo(dateStr) {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const seconds = Math.floor((now - date) / 1000);
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + 'm ago';
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + 'h ago';
+    const days = Math.floor(hours / 24);
+    return days + 'd ago';
+}
+
+onMounted(() => {
+    document.addEventListener('click', handleClickOutside);
+    fetchNotifications();
+});
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
+});
 </script>
 
 <template>
@@ -290,27 +395,87 @@ const sidebarOpen = ref(false);
 
                     <div class="flex items-center gap-4">
                         <!-- Notifications -->
-                        <button
-                            class="relative rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none"
-                        >
-                            <svg
-                                class="h-6 w-6"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                        <div class="relative notification-bell-wrapper">
+                            <button
+                                @click.stop="toggleNotifications"
+                                class="relative rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none"
                             >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                                />
-                            </svg>
-                            <span
-                                class="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
-                                >3</span
+                                <svg
+                                    class="h-6 w-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                                    />
+                                </svg>
+                                <span
+                                    v-if="unreadCount > 0"
+                                    class="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
+                                >{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+                            </button>
+
+                            <Transition
+                                enter-active-class="transition ease-out duration-200"
+                                enter-from-class="opacity-0 scale-95"
+                                enter-to-class="opacity-100 scale-100"
+                                leave-active-class="transition ease-in duration-75"
+                                leave-from-class="opacity-100 scale-100"
+                                leave-to-class="opacity-0 scale-95"
                             >
-                        </button>
+                                <div
+                                    v-if="showNotifications"
+                                    class="absolute right-0 z-50 mt-2 w-80 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5"
+                                >
+                                    <div class="border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+                                        <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+                                        <button
+                                            v-if="unreadCount > 0"
+                                            @click.stop="markAllAsRead"
+                                            class="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                                        >Mark all read</button>
+                                    </div>
+                                    <div class="max-h-80 overflow-y-auto">
+                                        <div
+                                            v-if="notifications.length === 0"
+                                            class="py-8 text-center text-sm text-gray-500"
+                                        >
+                                            <svg class="mx-auto h-8 w-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                            </svg>
+                                            No notifications yet
+                                        </div>
+                                        <button
+                                            v-for="notification in notifications"
+                                            :key="notification.id"
+                                            @click.stop="markAsRead(notification.id)"
+                                            class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-start gap-3 transition-colors"
+                                            :class="{ 'bg-indigo-50/50': !notification.is_read }"
+                                        >
+                                            <div class="flex-shrink-0 mt-0.5">
+                                                <div class="flex h-8 w-8 items-center justify-center rounded-full" :class="getNotificationStyle(notification.type)">
+                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="getNotificationSvgPath(notification.type)" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-sm font-medium text-gray-900" :class="{ 'font-semibold': !notification.is_read }">{{ notification.title }}</p>
+                                                <p class="text-xs text-gray-500 mt-0.5 truncate">{{ notification.message }}</p>
+                                                <p class="text-xs text-gray-400 mt-1">{{ timeAgo(notification.created_at) }}</p>
+                                            </div>
+                                            <div v-if="!notification.is_read" class="flex-shrink-0 mt-2">
+                                                <span class="h-2 w-2 rounded-full bg-indigo-500 block"></span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </Transition>
+                        </div>
 
                         <!-- User Dropdown -->
                         <div class="relative">
@@ -323,15 +488,15 @@ const sidebarOpen = ref(false);
                                             class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-sm font-medium text-indigo-600"
                                         >
                                             {{
-                                                $page.props.auth.user.name
-                                                    .charAt(0)
-                                                    .toUpperCase()
+                                                $page.props.auth.user?.name
+                                                    ?.charAt(0)
+                                                    ?.toUpperCase() ?? '?'
                                             }}
                                         </div>
                                         <span
                                             class="hidden text-sm font-medium text-gray-700 sm:block"
                                             >{{
-                                                $page.props.auth.user.name
+                                                $page.props.auth.user?.name ?? 'User'
                                             }}</span
                                         >
                                         <svg

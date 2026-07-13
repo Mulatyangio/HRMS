@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Models\LeaveMgt;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -47,11 +48,27 @@ class DashboardController extends Controller
                 'time' => $employee->updated_at->diffForHumans(),
             ]);
 
+        $pendingApprovals = LeaveMgt::with('employee')
+            ->where('status', 'pending')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(fn ($leave) => [
+                'id' => $leave->id,
+                'title' => ucfirst($leave->type) . ' Request',
+                'employee' => $leave->employee?->name ?? 'Unknown',
+                'details' => $leave->start_date && $leave->end_date
+                    ? \Carbon\Carbon::parse($leave->start_date)->diffInDays(\Carbon\Carbon::parse($leave->end_date)) + 1 . ' days'
+                    : 'N/A',
+                'status' => 'Pending',
+            ]);
+
         
         return Inertia::render('Dashboard', [
             'stats' => $stats,
             'departments' => $departments,
             'recentActivities' => $recentActivities,
+            'pendingApprovals' => $pendingApprovals,
         ]);
     }
 }

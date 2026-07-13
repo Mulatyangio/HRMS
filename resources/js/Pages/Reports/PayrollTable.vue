@@ -19,9 +19,9 @@ const filteredPayrolls = computed(() => {
 
         return (
             employee.includes(search.value.toLowerCase()) ||
-            payroll.employee?.employee_number
-                ?.toLowerCase()
-                .includes(search.value.toLowerCase())
+                            payroll.employee?.id
+                                ?.toString()
+                                .includes(search.value.toLowerCase())
         );
     });
 });
@@ -89,7 +89,7 @@ const formatCurrency = (amount) => {
                         </td>
 
                         <td class="px-6 py-4">
-                            {{ payroll.employee?.phone }}
+                            {{ payroll.employee?.id ?? 'N/A' }}
                         </td>
 
                         <td class="px-6 py-4 text-right">
@@ -98,8 +98,7 @@ const formatCurrency = (amount) => {
 
                         <td class="px-6 py-4 text-right">
                             {{ formatCurrency(payroll.allowances) }}
-                        </td>  {{ payroll.employee?.first_name }}
-                            {{ payroll.employee?.last_name }}
+                        </td>
 
                         <td class="px-6 py-4 text-right">
                             {{ formatCurrency(payroll.deductions) }}
@@ -110,7 +109,7 @@ const formatCurrency = (amount) => {
                         </td>
 
                         <td class="px-6 py-4 text-center">
-                            {{ payroll.payroll_month }}
+                            {{ payroll.month }}
                         </td>
                     </tr>
 

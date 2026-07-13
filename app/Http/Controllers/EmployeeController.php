@@ -32,7 +32,13 @@ class EmployeeController extends Controller
 
         
         // Create a new employee record
-        \App\Models\Employee::create($validatedData);
+        $employee = \App\Models\Employee::create($validatedData);
+
+        \App\Models\Notification::create([
+            'type' => 'employee_added',
+            'title' => 'New Employee Added',
+            'message' => $employee->name . ' has been added as a ' . $employee->position . '.',
+        ]);
 
         // Redirect back to the employees list with a success message
         return redirect()->route('employees')->with('success', 'Employee created successfully.');
@@ -74,7 +80,14 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
+        $name = $employee->name;
         $employee->delete();
+
+        \App\Models\Notification::create([
+            'type' => 'employee_removed',
+            'title' => 'Employee Removed',
+            'message' => $name . ' has been removed from the system.',
+        ]);
 
         return redirect()->route('employees')->with('success', 'Employee deleted successfully.');
     }

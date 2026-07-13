@@ -14,9 +14,7 @@ const filteredAttendance = computed(() => {
     if (!search.value) return props.attendance;
 
     return props.attendance.filter(record =>
-        record.employee?.first_name?.toLowerCase().includes(search.value.toLowerCase()) ||
-        record.employee?.last_name?.toLowerCase().includes(search.value.toLowerCase()) ||
-        record.employee?.employee_number?.toLowerCase().includes(search.value.toLowerCase())
+        record.employee?.name?.toLowerCase().includes(search.value.toLowerCase())
     );
 });
 
@@ -98,12 +96,11 @@ const badgeClass = (status) => {
                     >
 
                         <td class="px-6 py-4">
-                            {{ record.employee?.first_name }}
-                            {{ record.employee?.last_name }}
+                            {{ record.employee?.name ?? 'N/A' }}
                         </td>
 
                         <td class="px-6 py-4">
-                            {{ record.employee?.employee_number }}
+                            {{ record.employee?.id ?? 'N/A' }}
                         </td>
 
                         <td class="px-6 py-4">

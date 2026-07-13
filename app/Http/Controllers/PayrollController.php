@@ -25,7 +25,15 @@ class PayrollController extends Controller
 
     public function store(StorePayrollRequest $request)
     {
-        Payroll::create($request->validated());
+        $payroll = Payroll::create($request->validated());
+        $employee = $payroll->employee;
+
+        \App\Models\Notification::create([
+            'type' => 'payroll_processed',
+            'title' => 'Payroll Processed',
+            'message' => 'Payroll for ' . ($employee->name ?? 'employee') . ' has been processed for ' . $payroll->month . '.',
+        ]);
+
         return redirect()->route('payroll')->with('success', 'Payroll created successfully.');
     }
 

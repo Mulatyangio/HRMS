@@ -8,6 +8,18 @@ const addEmployee = () => {
     router.visit(route('employees.create'));
 };
 
+const goToLeaves = () => {
+    router.visit(route('leaves'));
+};
+
+const goToReports = () => {
+    router.visit(route('reports'));
+};
+
+const goToPayroll = () => {
+    router.visit(route('payroll'));
+};
+
 const props = defineProps({
     stats: {
         type: Array,
@@ -20,25 +32,15 @@ const props = defineProps({
     },
     departments: {
         type: Array,
-        default: () => [
-            { name: 'Engineering', head: 'Sarah Johnson', employees: 45 },
-            { name: 'Marketing', head: 'Mike Chen', employees: 28 },
-            { name: 'Finance', head: 'Emily Davis', emtimezoneployees: 15 },
-            { name: 'Operations', head: 'James Wilson', employees: 32 },
-            { name: 'Human Resources', head: 'Lisa Brown', employees: 12 },
-            { name: 'Sales', head: 'David Kim', employees: 38 },
-        ],
+        default: () => [],
     },
     recentActivities: {
         type: Array,
-        default: () => [
-            { user: 'Sarah Johnson', action: 'clocked in', time: '2 minutes ago' },
-            { user: 'Mike Chen', action: 'submitted leave request', time: '15 minutes ago' },
-            { user: 'Emily Davis', action: 'approved overtime', time: '1 hour ago' },
-            { user: 'James Wilson', action: 'updated department budget', time: '2 hours ago' },
-            { user: 'Lisa Brown', action: 'completed onboarding', time: '3 hours ago' },
-            { user: 'David Kim', action: 'submitted expense report', time: '4 hours ago' },
-        ],
+        default: () => [],
+    },
+    pendingApprovals: {
+        type: Array,
+        default: () => [],
     },
 });
 </script>
@@ -50,7 +52,7 @@ const props = defineProps({
         <template #header>
             <div>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Dashboard</h2>
-                <p class="mt-1 text-sm text-gray-500">Welcome back, {{ $page.props.auth.user.name }}. Here's what's happening today.</p>
+                <p class="mt-1 text-sm text-gray-500">Welcome back, {{ $page.props.auth.user?.name ?? 'User' }}. Here's what's happening today.</p>
             </div>
         </template>
 
@@ -101,7 +103,7 @@ const props = defineProps({
                 <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                     <h3 class="text-base font-semibold text-gray-900">Departments</h3>
                     <button class="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                    @onclick="router.visit(route('departments.index'))"
+                    @click="router.visit(route('departments.index'))"
                     >View all</button>
                 </div>
                 <div class="p-6">
@@ -124,7 +126,7 @@ const props = defineProps({
                 <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                     <h3 class="text-base font-semibold text-gray-900">Recent Activity</h3>
                     <button class="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                    @onclick="router.visit(route('activities.index'))"
+                    @click="router.visit(route('activities.index'))"
                     >View all</button>
                 </div>
                 <div class="divide-y divide-gray-100">
@@ -149,25 +151,25 @@ const props = defineProps({
             <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h3 class="mb-4 text-base font-semibold text-gray-900">Quick Actions</h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <button @onclick="addEmployee" class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 p-4 text-sm text-gray-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600">
+                    <button @click="addEmployee" class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 p-4 text-sm text-gray-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                         </svg>
                         Add Employee
                     </button>
-                    <button class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 p-4 text-sm text-gray-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600">
+                    <button @click="goToLeaves" class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 p-4 text-sm text-gray-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         Approve Leave
                     </button>
-                    <button class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 p-4 text-sm text-gray-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600">
+                    <button @click="goToPayroll" class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 p-4 text-sm text-gray-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         Run Payroll
                     </button>
-                    <button class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 p-4 text-sm text-gray-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600">
+                    <button @click="goToReports" class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 p-4 text-sm text-gray-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
@@ -179,28 +181,18 @@ const props = defineProps({
             <!-- Pending Approvals -->
             <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h3 class="mb-4 text-base font-semibold text-gray-900">Pending Approvals</h3>
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between rounded-lg bg-amber-50 p-3">
+                <div v-if="pendingApprovals.length" class="space-y-3">
+                    <div v-for="approval in pendingApprovals" :key="approval.id"
+                        class="flex items-center justify-between rounded-lg bg-amber-50 p-3">
                         <div>
-                            <p class="text-sm font-medium text-gray-900">Leave Request</p>
-                            <p class="text-xs text-gray-500">Sarah Johnson &middot; 2 days</p>
+                            <p class="text-sm font-medium text-gray-900">{{ approval.title }}</p>
+                            <p class="text-xs text-gray-500">{{ approval.employee }} &middot; {{ approval.details }}</p>
                         </div>
-                        <span class="rounded-full bg-amber-200 px-2 py-0.5 text-xs font-medium text-amber-800">Pending</span>
+                        <span class="rounded-full bg-amber-200 px-2 py-0.5 text-xs font-medium text-amber-800">{{ approval.status }}</span>
                     </div>
-                    <div class="flex items-center justify-between rounded-lg bg-amber-50 p-3">
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">Overtime</p>
-                            <p class="text-xs text-gray-500">Mike Chen &middot; 4 hours</p>
-                        </div>
-                        <span class="rounded-full bg-amber-200 px-2 py-0.5 text-xs font-medium text-amber-800">Pending</span>
-                    </div>
-                    <div class="flex items-center justify-between rounded-lg bg-amber-50 p-3">
-                        <div>
-                            <p class="text-sm font-medium text-gray-900">Expense Report</p>
-                            <p class="text-xs text-gray-500">Emily Davis &middot; $250</p>
-                        </div>
-                        <span class="rounded-full bg-amber-200 px-2 py-0.5 text-xs font-medium text-amber-800">Pending</span>
-                    </div>
+                </div>
+                <div v-else class="text-center text-gray-400 py-6 text-sm">
+                    No pending approvals.
                 </div>
             </div>
         </div>
