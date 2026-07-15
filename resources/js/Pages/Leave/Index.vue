@@ -45,7 +45,6 @@ const statusClass = (status) => {
                                 <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">End Date</th>
                                 <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Reason</th>
                                 <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-                                <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
@@ -56,42 +55,36 @@ const statusClass = (status) => {
                                 <td class="px-6 py-4">{{ leave.end_date }}</td>
                                 <td class="px-6 py-4">{{ leave.reason || '-' }}</td>
                                 <td class="px-6 py-4">
-                                    <span
-                                        class="rounded-full px-3 py-1 text-xs font-semibold"
-                                        :class="statusClass(leave.status)"
-                                    >
-                                        {{ leave.status }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <Link
-                                        v-if="leave.status === 'pending'"
-                                        :href="route('leaves.approve', leave.id)"
-                                        method="patch"
-                                        as="button"
-                                        class="mr-1 rounded bg-green-500 px-3 py-1 text-xs text-white hover:bg-green-600"
-                                    >
-                                        Accept
-                                    </Link>
-                                    <Link
-                                        v-if="leave.status === 'pending'"
-                                        :href="route('leaves.reject', leave.id)"
-                                        method="patch"
-                                        as="button"
-                                        class="mr-1 rounded bg-red-500 px-3 py-1 text-xs text-white hover:bg-red-600"
-                                    >
-                                        Reject
-                                    </Link>
-                                    <Link
-                                        :href="route('leaves.edit', leave.id)"
-                                        class="mr-1 text-indigo-600 hover:underline text-xs"
-                                    >
-                                        Edit
-                                    </Link>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="rounded-full px-3 py-1 text-xs font-semibold"
+                                            :class="statusClass(leave.status)"
+                                        >
+                                            {{ leave.status }}
+                                        </span>
+                                        <template v-if="leave.status === 'pending'">
+                                            <Link
+                                                :href="route('leaves.approve', leave.id)"
+                                                method="patch"
+                                                as="button"
+                                                class="rounded bg-green-500 px-2 py-1 text-xs text-white hover:bg-green-600"
+                                            >
+                                                Accept
+                                            </Link>
+                                            <Link
+                                                :href="route('leaves.reject', leave.id)"
+                                                method="patch"
+                                                as="button"
+                                                class="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
+                                            >
+                                                Reject
+                                            </Link>
+                                        </template>
+                                    </div>
                                 </td>
                             </tr>
                             <tr v-if="leaves.length === 0">
-                                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
                                     No leave requests found.
                                 </td>
                             </tr>

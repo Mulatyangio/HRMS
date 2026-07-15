@@ -1,6 +1,14 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+
+const props = defineProps({
+    departments: {
+        type: Array,
+        default: () => [],
+    },
+});
 
 const form = useForm({
     name: '',
@@ -12,7 +20,29 @@ const form = useForm({
     salary: '',
     hired_at: '',
     is_department_head: false,
+    password: '',
+    password_confirmation: '',
 });
+
+const deptSearch = ref('');
+const deptOpen = ref(false);
+
+const filteredDepts = computed(() => {
+    const term = deptSearch.value.toLowerCase();
+    if (!term) return props.departments;
+    return props.departments.filter(d => d.name.toLowerCase().includes(term));
+});
+
+const selectDept = (name) => {
+    form.department = name;
+    deptSearch.value = name;
+    deptOpen.value = false;
+};
+
+const onDeptInput = () => {
+    form.department = '';
+    deptOpen.value = true;
+};
 
 const submit = () => {
     form.post(route('employees.store'));
@@ -79,16 +109,33 @@ const submit = () => {
                         </div>
 
                         <!-- Department -->
-                        <div>
+                        <div class="relative">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Department
                             </label>
                             <input
-                                v-model="form.department"
+                                v-model="deptSearch"
+                                @input="onDeptInput"
+                                @focus="deptOpen = true"
+                                @blur="setTimeout(() => deptOpen = false, 200)"
                                 type="text"
                                 class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                placeholder="Human Resource"
+                                placeholder="Search department..."
                             />
+                            <ul
+                                v-if="deptOpen && filteredDepts.length > 0"
+                                class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                            >
+                                <li
+                                    v-for="dept in filteredDepts"
+                                    :key="dept.id"
+                                    @mousedown.prevent="selectDept(dept.name)"
+                                    class="px-4 py-2 text-sm cursor-pointer hover:bg-blue-50"
+                                    :class="{ 'bg-blue-100': form.department === dept.name }"
+                                >
+                                    {{ dept.name }}
+                                </li>
+                            </ul>
                             <p
                                 v-if="form.errors.department"
                                 class="text-red-500 text-sm mt-1"
@@ -179,6 +226,38 @@ const submit = () => {
                         <p v-if="form.errors.hired_at" class="text-red-500 text-sm mt-1">
                             {{ form.errors.hired_at }}
                         </p>
+                        </div>
+
+                        <!-- Password -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Login Password
+                            </label>
+                            <input
+                                v-model="form.password"
+                                type="password"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                placeholder="Min. 8 characters"
+                            />
+                            <p
+                                v-if="form.errors.password"
+                                class="text-red-500 text-sm mt-1"
+                            >
+                                {{ form.errors.password }}
+                            </p>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Confirm Password
+                            </label>
+                            <input
+                                v-model="form.password_confirmation"
+                                type="password"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                placeholder="Re-enter password"
+                            />
                         </div>
 
                         <!-- Department Head -->

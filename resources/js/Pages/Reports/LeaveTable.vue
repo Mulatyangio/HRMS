@@ -10,16 +10,29 @@ const props = defineProps({
 
 const search = ref('');
 
+const calcDays = (leave) => {
+    if (!leave.start_date || !leave.end_date) return 0;
+    return Math.ceil(
+        (new Date(leave.end_date) - new Date(leave.start_date)) / (1000 * 60 * 60 * 24)
+    ) + 1;
+};
+
+const enrichedLeaves = computed(() =>
+    props.leaves.map((leave) => ({
+        ...leave,
+        days: leave.days ?? calcDays(leave),
+    }))
+);
+
 const filteredLeaves = computed(() => {
-    if (!search.value) return props.leaves;
+    let leaves = enrichedLeaves.value;
+    if (!search.value) return leaves;
 
-    return props.leaves.filter((leave) => {
-        const employee =
-            `${leave.employee?.name?? ''} `.toLowerCase();
-
+    return leaves.filter((leave) => {
+        const employee = `${leave.employee?.name ?? ''} `.toLowerCase();
         return (
             employee.includes(search.value.toLowerCase()) ||
-            leave.leave_type?.toLowerCase().includes(search.value.toLowerCase())
+            leave.type?.toLowerCase().includes(search.value.toLowerCase())
         );
     });
 });
@@ -92,12 +105,11 @@ const statusClass = (status) => {
                     >
 
                         <td class="px-6 py-4">
-                            {{ leave.employee?.first_name }}
-                            {{ leave.employee?.last_name }}
+                         {{ leave.employee?.name || 'N/A' }}
                         </td>
 
                         <td class="px-6 py-4">
-                            {{ leave.leave_type }}
+                            {{ leave.type }}
                         </td>
 
                         <td class="px-6 py-4">

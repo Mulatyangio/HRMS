@@ -10,11 +10,21 @@ class NotificationController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $notifications = Notification::latest()
-            ->take(20)
-            ->get(['id', 'type', 'title', 'message', 'is_read', 'created_at']);
+        $query = Notification::latest()->take(20);
 
-        $unreadCount = Notification::unread()->count();
+        if ($request->user()->role !== 'admin') {
+            $employeeTypes = ['leave_approved', 'leave_rejected', 'leave_requested', 'payroll_processed'];
+            $query->whereIn('type', $employeeTypes);
+        }
+
+        $notifications = $query->get(['id', 'type', 'title', 'message', 'is_read', 'created_at']);
+
+        $unreadQuery = Notification::unread();
+        if ($request->user()->role !== 'admin') {
+            $employeeTypes = ['leave_approved', 'leave_rejected', 'leave_requested', 'payroll_processed'];
+            $unreadQuery->whereIn('type', $employeeTypes);
+        }
+        $unreadCount = $unreadQuery->count();
 
         return response()->json([
             'notifications' => $notifications,

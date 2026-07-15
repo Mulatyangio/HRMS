@@ -1,38 +1,41 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 
-const { employees, departments } = defineProps({
+import { router } from '@inertiajs/vue3';
+
+const { employees, departments, filters } = defineProps({
     employees: {
-        type: Array,
-        default: () => [],
+        type: Object,
+        default: () => ({ data: [], links: [], meta: {} }),
     },
     departments: {
         type: Array,
         default: () => [],
     },
+    filters: {
+        type: Object,
+        default: () => ({ search: '', department: '' }),
+    },
 });
 
-const search = ref('');
-const selectedDepartment = ref('');
+const search = ref(filters.search);
+const selectedDepartment = ref(filters.department);
 
-const filteredEmployees = computed(() => {
-    let result = employees;
-    const term = search.value.toLowerCase();
-    if (term) {
-        result = result.filter(e =>
-            e.name.toLowerCase().includes(term) ||
-            e.email.toLowerCase().includes(term) ||
-            e.department.toLowerCase().includes(term) ||
-            e.position.toLowerCase().includes(term)
-        );
-    }
-    if (selectedDepartment.value) {
-        result = result.filter(e => e.department === selectedDepartment.value);
-    }
-    return result;
-});
+let timeout = null;
+const applyFilters = () => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+        router.get(route('employees'), {
+            search: search.value,
+            department: selectedDepartment.value,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    }, 300);
+};
 </script>
 
 <template>
@@ -65,12 +68,14 @@ const filteredEmployees = computed(() => {
                     <input
                         type="text"
                         v-model="search"
+                        @input="applyFilters"
                         placeholder="Search employees..."
                         class="max-w-xs rounded-lg border-gray-200 bg-gray-50 py-2 px-3 text-sm"
                     />
 
                     <select
                         v-model="selectedDepartment"
+                        @change="applyFilters"
                         class="rounded-lg border-gray-200 bg-gray-50 py-2 text-sm"
                     >
                         <option value="">All Departments</option>
@@ -86,7 +91,7 @@ const filteredEmployees = computed(() => {
             </div>
 
             <!-- TABLE -->
-            <div v-if="filteredEmployees.length > 0" class="overflow-x-auto">
+            <div v-if="employees.data.length > 0" class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -108,6 +113,9 @@ const filteredEmployees = computed(() => {
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Status
                             </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                Account
+                            </th>
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                                 Actions
                             </th>
@@ -116,7 +124,7 @@ const filteredEmployees = computed(() => {
 
                     <tbody class="divide-y divide-gray-200 bg-white">
                         <tr
-                            v-for="employee in filteredEmployees"
+                            v-for="employee in employees.data"
                             :key="employee.id"
                             class="hover:bg-gray-50"
                         >
@@ -152,6 +160,14 @@ const filteredEmployees = computed(() => {
                                     {{ employee.status }}
                                 </span>
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span
+                                    class="px-3 py-1 text-xs rounded-full font-medium"
+                                    :class="employee.user ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-500'"
+                                >
+                                    {{ employee.user ? 'Has Login' : 'No Account' }}
+                                </span>
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <Link
                                     :href="route('employees.edit', employee.id)"
@@ -173,8 +189,25 @@ const filteredEmployees = computed(() => {
                 </table>
             </div>
 
+            <!-- PAGINATION -->
+            <div v-if="employees.links?.length > 1" class="flex items-center justify-center gap-1 border-t border-gray-100 px-6 py-4">
+                <component
+                    :is="link.url ? Link : 'span'"
+                    v-for="link in employees.links"
+                    :key="link.label"
+                    :href="link.url || '#'"
+                    class="rounded-lg px-3 py-1.5 text-sm"
+                    :class="{
+                        'bg-indigo-600 text-white': link.active,
+                        'text-gray-600 hover:bg-gray-100': !link.active && link.url,
+                        'text-gray-400 cursor-default': !link.url,
+                    }"
+                    v-html="link.label"
+                />
+            </div>
+
             <!-- NOT FOUND -->
-            <div v-else-if="search.trim() && filteredEmployees.length === 0" class="p-6 text-center text-gray-500">
+            <div v-else-if="search.trim() && employees.data.length === 0" class="p-6 text-center text-gray-500">
                 <p class="text-sm font-medium text-gray-900">
                     Not found
                 </p>

@@ -14,14 +14,28 @@ class AttendanceController extends Controller
     /**
      * Display a listing of the resource.
      */
- public function index()
-{
-    return inertia('Attendance/index', [
-        'attendances' => Attendance::with('employee')
-            ->latest()
-            ->get(),
-    ]);
-}
+    public function index(Request $request)
+    {
+        $query = Attendance::with('employee');
+
+        if ($request->filled('employee_id')) {
+            $query->where('employee_id', $request->employee_id);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->where('date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->where('date', '<=', $request->date_to);
+        }
+
+        return inertia('Attendance/index', [
+            'attendances' => $query->latest('date')->get(),
+            'employees' => \App\Models\Employee::all(['id', 'name']),
+            'filters' => $request->only(['employee_id', 'date_from', 'date_to']),
+        ]);
+    }
     /**
      * Show the form for creating a new resource.
      */

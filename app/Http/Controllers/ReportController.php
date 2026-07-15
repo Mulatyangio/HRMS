@@ -59,10 +59,10 @@ class ReportController extends Controller
         }
 
         $attendance = [
-            'present' => (clone $attendanceQuery)->where('status', 'Present')->count(),
-            'absent' => (clone $attendanceQuery)->where('status', 'Absent')->count(),
+            'present' => (clone $attendanceQuery)->whereIn('status', ['Present', 'Late'])->count(),
             'late' => (clone $attendanceQuery)->where('status', 'Late')->count(),
         ];
+        $attendance['absent'] = $totalEmployees - $attendance['present'];
 
         $attendanceRecordsQuery = Attendance::with('employee')
             ->whereBetween('date', [$dateFrom, $dateTo]);
@@ -74,7 +74,13 @@ class ReportController extends Controller
         }
         $attendanceRecords = $attendanceRecordsQuery->get();
 
-        $leaveRecords = LeaveMgt::with('employee')->get();
+        $leaveRecords = LeaveMgt::with('employee')->get()->map(function ($leave) {
+            $days = $leave->start_date && $leave->end_date
+                ? Carbon::parse($leave->start_date)->diffInDays(Carbon::parse($leave->end_date)) + 1
+                : 0;
+            $leave->days = $days;
+            return $leave;
+        });
 
         $payrolls = Payroll::with('employee')->get();
         $totalPayroll = $payrolls->sum('net_salary');
@@ -161,10 +167,10 @@ class ReportController extends Controller
         }
 
         $attendance = [
-            'present' => (clone $attendanceQuery)->where('status', 'Present')->count(),
-            'absent' => (clone $attendanceQuery)->where('status', 'Absent')->count(),
+            'present' => (clone $attendanceQuery)->whereIn('status', ['Present', 'Late'])->count(),
             'late' => (clone $attendanceQuery)->where('status', 'Late')->count(),
         ];
+        $attendance['absent'] = $employees->count() - $attendance['present'];
 
         return match ($type) {
             'csv' => $this->exportCsv($employees, $attendance),

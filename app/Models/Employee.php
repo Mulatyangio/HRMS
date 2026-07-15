@@ -19,6 +19,7 @@ class Employee extends Model
         'salary',
         'hired_at',
         'is_department_head',
+        'user_id',
     ];
 
     protected function casts(): array
@@ -28,6 +29,21 @@ class Employee extends Model
             'salary' => 'decimal:2',
             'is_department_head' => 'boolean',
         ];
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function leaveManagements()
+    {
+        return $this->hasMany(LeaveMgt::class);
     }
 
     public function scopeActive($query)
